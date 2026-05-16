@@ -4,7 +4,7 @@ from typing import Optional
 import requests
 
 # Update this to your actual GitHub repo when publishing
-GITHUB_REPO = 'user/clipboard-manager'  # placeholder
+GITHUB_REPO = 'xfpuls/clipboard-history-manager'
 API_URL = f'https://api.github.com/repos/{GITHUB_REPO}/releases/latest'
 
 
