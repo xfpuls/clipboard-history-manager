@@ -72,19 +72,53 @@ class MainPanel(QWidget):
 
     def _build_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setContentsMargins(10, 6, 10, 10)
         main_layout.setSpacing(8)
 
-        # Top row 1: search + window controls
-        top_row = QHBoxLayout()
-        top_row.setSpacing(6)
+        # === Title bar row: app name + minimize/close ===
+        title_row = QHBoxLayout()
+        title_row.setSpacing(4)
+
+        title_lbl = QLabel('剪贴板历史管理器')
+        title_lbl.setStyleSheet('font-size: 13px; font-weight: 600; color: #5B9BD5;')
+        title_row.addWidget(title_lbl)
+        title_row.addStretch()
+
+        # Minimize button
+        min_btn = QPushButton('—')
+        min_btn.setFixedSize(28, 28)
+        min_btn.setStyleSheet(
+            'QPushButton { background: white; color: #5C7DA0; border: 1px solid #D0DFEF; '
+            'border-radius: 6px; font-size: 12px; font-weight: bold; }'
+            'QPushButton:hover { background: #E3F2FD; }'
+        )
+        min_btn.setToolTip('最小化到托盘')
+        min_btn.clicked.connect(self.minimize_to_tray.emit)
+        title_row.addWidget(min_btn)
+
+        # Close button
+        close_btn = QPushButton('✕')
+        close_btn.setFixedSize(28, 28)
+        close_btn.setStyleSheet(
+            'QPushButton { background: white; color: #E74C3C; border: 1px solid #D0DFEF; '
+            'border-radius: 6px; font-size: 12px; font-weight: bold; }'
+            'QPushButton:hover { background: #FDEDEC; }'
+        )
+        close_btn.setToolTip('退出软件')
+        close_btn.clicked.connect(self.quit_app.emit)
+        title_row.addWidget(close_btn)
+
+        main_layout.addLayout(title_row)
+
+        # === Search row: search + pin-top + settings ===
+        search_row = QHBoxLayout()
+        search_row.setSpacing(6)
 
         self.search_box = QLineEdit()
         self.search_box.setPlaceholderText('搜索历史记录...')
         self.search_box.textChanged.connect(self._on_search)
-        top_row.addWidget(self.search_box)
+        search_row.addWidget(self.search_box)
 
-        # Always-on-top toggle
         self.pin_top_btn = QPushButton('📌')
         self.pin_top_btn.setFixedSize(32, 32)
         self.pin_top_btn.setCheckable(True)
@@ -92,9 +126,8 @@ class MainPanel(QWidget):
         self.pin_top_btn.setToolTip('窗口置顶：开')
         self.pin_top_btn.clicked.connect(self._toggle_always_on_top)
         self._update_pin_top_style()
-        top_row.addWidget(self.pin_top_btn)
+        search_row.addWidget(self.pin_top_btn)
 
-        # Settings button with gear icon
         settings_btn = QPushButton()
         settings_btn.setFixedSize(32, 32)
         settings_btn.setObjectName('settingsBtn')
@@ -106,33 +139,9 @@ class MainPanel(QWidget):
         else:
             settings_btn.setText('⚙')
         settings_btn.clicked.connect(self.show_settings.emit)
-        top_row.addWidget(settings_btn)
+        search_row.addWidget(settings_btn)
 
-        # Minimize button
-        min_btn = QPushButton('—')
-        min_btn.setFixedSize(32, 32)
-        min_btn.setStyleSheet(
-            'QPushButton { background: white; color: #5C7DA0; border: 1px solid #D0DFEF; '
-            'border-radius: 6px; font-size: 14px; font-weight: bold; }'
-            'QPushButton:hover { background: #E3F2FD; }'
-        )
-        min_btn.setToolTip('最小化到托盘')
-        min_btn.clicked.connect(self.minimize_to_tray.emit)
-        top_row.addWidget(min_btn)
-
-        # Close button
-        close_btn = QPushButton('✕')
-        close_btn.setFixedSize(32, 32)
-        close_btn.setStyleSheet(
-            'QPushButton { background: white; color: #E74C3C; border: 1px solid #D0DFEF; '
-            'border-radius: 6px; font-size: 14px; font-weight: bold; }'
-            'QPushButton:hover { background: #FDEDEC; }'
-        )
-        close_btn.setToolTip('退出软件')
-        close_btn.clicked.connect(self.quit_app.emit)
-        top_row.addWidget(close_btn)
-
-        main_layout.addLayout(top_row)
+        main_layout.addLayout(search_row)
 
         # Filter bar
         self.filter_bar = FilterBar()

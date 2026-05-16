@@ -25,3 +25,4 @@ venv/
 *.tmp
 *.log
 release/
+*.png
