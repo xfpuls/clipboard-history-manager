@@ -1,0 +1,26 @@
+# Build artifacts
+build/
+dist/
+*.spec
+*.pyc
+__pycache__/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Generated binary
+剪贴板历史管理器.exe
+
+# Python virtual env
+venv/
+.venv/
+
+# Temp
+*.tmp
+*.log
