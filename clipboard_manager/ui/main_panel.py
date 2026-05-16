@@ -1,4 +1,5 @@
 """Main clipboard panel - search, filter, card list, and always-on-top toggle."""
+import ctypes
 import os
 import sys
 from PySide6.QtWidgets import (
@@ -10,6 +11,13 @@ from PySide6.QtGui import QClipboard, QIcon
 
 from clipboard_manager.database import get_recent, get_records
 from clipboard_manager.ui.card_widget import CardWidget
+
+
+HWND_TOPMOST = -1
+HWND_NOTOPMOST = -2
+SWP_NOMOVE = 0x0002
+SWP_NOSIZE = 0x0001
+SWP_SHOWWINDOW = 0x0040
 
 
 def _get_gear_icon_path() -> str:
@@ -183,15 +191,18 @@ class MainPanel(QWidget):
         on = self.pin_top_btn.isChecked()
         self._update_pin_top_style()
         self.pin_top_btn.setToolTip('窗口置顶：开' if on else '窗口置顶：关')
-        # Find the parent window and toggle the flag
+        # Use Windows API to avoid window flicker
         w = self.window()
         if w:
-            flags = w.windowFlags()
+            hwnd = int(w.winId())
             if on:
-                w.setWindowFlags(flags | Qt.WindowType.WindowStaysOnTopHint)
+                ctypes.windll.user32.SetWindowPos(
+                    hwnd, HWND_TOPMOST, 0, 0, 0, 0,
+                    SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
             else:
-                w.setWindowFlags(flags & ~Qt.WindowType.WindowStaysOnTopHint)
-            w.show()
+                ctypes.windll.user32.SetWindowPos(
+                    hwnd, HWND_NOTOPMOST, 0, 0, 0, 0,
+                    SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
 
     def _on_search(self, text: str):
         self.search_text = text
