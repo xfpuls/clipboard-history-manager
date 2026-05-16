@@ -1,3 +1,6 @@
+学习的视频原链接https://www.bilibili.com/video/BV1BvR1BtEFD/
+
+
 # 剪贴板历史管理器
 
 一个运行在 Windows 上的轻量级剪贴板历史管理工具，常驻系统托盘，自动记录文字和图片复制内容。
