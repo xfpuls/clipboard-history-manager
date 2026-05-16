@@ -70,7 +70,7 @@ class MainPanel(QWidget):
         super().__init__()
         self.current_filter = 'all'
         self.search_text = ''
-        self._always_on_top = True
+        self._always_on_top = False
         self._build_ui()
         self.refresh()
 
@@ -130,8 +130,8 @@ class MainPanel(QWidget):
         self.pin_top_btn = QPushButton('📌')
         self.pin_top_btn.setFixedSize(32, 32)
         self.pin_top_btn.setCheckable(True)
-        self.pin_top_btn.setChecked(True)
-        self.pin_top_btn.setToolTip('窗口置顶：开')
+        self.pin_top_btn.setChecked(False)
+        self.pin_top_btn.setToolTip('窗口置顶：关')
         self.pin_top_btn.clicked.connect(self._toggle_always_on_top)
         self._update_pin_top_style()
         search_row.addWidget(self.pin_top_btn)

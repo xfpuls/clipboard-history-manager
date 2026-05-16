@@ -1,5 +1,6 @@
 """Main application class that wires all components together."""
 import os
+import sys
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QStackedWidget
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QIcon
@@ -28,8 +29,7 @@ class MainWindow(QWidget):
             self.setWindowIcon(QIcon(icon_path))
         self.setWindowFlags(
             Qt.WindowType.Window |
-            Qt.WindowType.WindowCloseButtonHint |
-            Qt.WindowType.WindowStaysOnTopHint
+            Qt.WindowType.WindowCloseButtonHint
         )
         self.setAttribute(Qt.WA_ShowWithoutActivating, False)
 
@@ -64,7 +64,7 @@ class MainWindow(QWidget):
         self.stack.setCurrentIndex(0)
 
     def closeEvent(self, event):
-        """System X hides to tray. When quitting, accept the close."""
+        """System X hides to tray. When quitting, accept close."""
         if getattr(self, '_quitting', False):
             event.accept()
         else:
@@ -77,7 +77,6 @@ class MainWindow(QWidget):
         self.stack.setCurrentIndex(1)
 
     def _start_hotkey_change(self):
-        # Simple approach: capture next key combo
         from PySide6.QtWidgets import QMessageBox
         msg = QMessageBox(self)
         msg.setWindowTitle('修改快捷键')
@@ -85,9 +84,7 @@ class MainWindow(QWidget):
         msg.setInformativeText('例如: Ctrl+Shift+X, Ctrl+Alt+V 等')
         msg.setStandardButtons(QMessageBox.Cancel)
         msg.show()
-        # For now, just show the message. Full hotkey capture needs
-        # a dedicated key-grab dialog which is more complex.
-        # The user understands the concept; we accept the default.
+        QTimer.singleShot(5000, msg.close)
 
 
 class ClipboardApp:
@@ -132,6 +129,9 @@ class ClipboardApp:
         # Check for updates (background, delayed)
         QTimer.singleShot(3000, self._check_updates)
 
+        # Show panel on startup
+        self._show_panel()
+
     def _show_panel(self):
         self.window.stack.setCurrentIndex(0)
         self.window.main_panel.refresh()
@@ -162,7 +162,6 @@ class ClipboardApp:
     def _reregister_hotkey(self, hotkey_str: str):
         ok = self.hotkey_filter.register(hotkey_str)
         if not ok:
-            # Fall back to default
             self.hotkey_filter.register('Ctrl+Shift+V')
 
     def _check_updates(self):
@@ -194,17 +193,15 @@ class ClipboardApp:
             save_config(config)
 
     def _quit(self):
-        # Stop timers
+        """Fully quit the application."""
         if hasattr(self.window.main_panel, '_refresh_timer'):
             self.window.main_panel._refresh_timer.stop()
-        # Unregister hotkey
         self.hotkey_filter.unregister()
-        # Hide tray
         self.tray.hide()
-        # Signal closeEvent to accept the close
         self.window._quitting = True
-        # Quit the application
+        self.window.hide()
         self.app.quit()
+        sys.exit(0)
 
     def run(self):
         self.app.exec()
