@@ -64,9 +64,12 @@ class MainWindow(QWidget):
         self.stack.setCurrentIndex(0)
 
     def closeEvent(self, event):
-        """Hide to tray instead of closing."""
-        event.ignore()
-        self.hide()
+        """System X hides to tray. When quitting, accept the close."""
+        if getattr(self, '_quitting', False):
+            event.accept()
+        else:
+            event.ignore()
+            self.hide()
 
     def _show_history(self):
         self.history_window.current_page = 1
@@ -198,9 +201,10 @@ class ClipboardApp:
         self.hotkey_filter.unregister()
         # Hide tray
         self.tray.hide()
-        # Quit application and force exit
+        # Signal closeEvent to accept the close
+        self.window._quitting = True
+        # Quit the application
         self.app.quit()
-        os._exit(0)
 
     def run(self):
         self.app.exec()
