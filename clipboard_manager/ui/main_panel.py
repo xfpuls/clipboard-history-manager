@@ -1,5 +1,4 @@
 """Main clipboard panel - search, filter, card list, and always-on-top toggle."""
-import ctypes
 import os
 import sys
 from PySide6.QtWidgets import (
@@ -11,13 +10,6 @@ from PySide6.QtGui import QClipboard, QIcon
 
 from clipboard_manager.database import get_recent, get_records
 from clipboard_manager.ui.card_widget import CardWidget
-
-
-HWND_TOPMOST = -1
-HWND_NOTOPMOST = -2
-SWP_NOMOVE = 0x0002
-SWP_NOSIZE = 0x0001
-SWP_SHOWWINDOW = 0x0040
 
 
 def _get_gear_icon_path() -> str:
@@ -80,43 +72,8 @@ class MainPanel(QWidget):
 
     def _build_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(10, 6, 10, 10)
+        main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(8)
-
-        # === Title bar row: app name + minimize/close ===
-        title_row = QHBoxLayout()
-        title_row.setSpacing(4)
-
-        title_lbl = QLabel('剪贴板历史管理器')
-        title_lbl.setStyleSheet('font-size: 13px; font-weight: 600; color: #5B9BD5;')
-        title_row.addWidget(title_lbl)
-        title_row.addStretch()
-
-        # Minimize button
-        min_btn = QPushButton('—')
-        min_btn.setFixedSize(28, 28)
-        min_btn.setStyleSheet(
-            'QPushButton { background: white; color: #5C7DA0; border: 1px solid #D0DFEF; '
-            'border-radius: 6px; font-size: 12px; font-weight: bold; }'
-            'QPushButton:hover { background: #E3F2FD; }'
-        )
-        min_btn.setToolTip('最小化到托盘')
-        min_btn.clicked.connect(self.minimize_to_tray.emit)
-        title_row.addWidget(min_btn)
-
-        # Close button
-        close_btn = QPushButton('✕')
-        close_btn.setFixedSize(28, 28)
-        close_btn.setStyleSheet(
-            'QPushButton { background: white; color: #E74C3C; border: 1px solid #D0DFEF; '
-            'border-radius: 6px; font-size: 12px; font-weight: bold; }'
-            'QPushButton:hover { background: #FDEDEC; }'
-        )
-        close_btn.setToolTip('退出软件')
-        close_btn.clicked.connect(self.quit_app.emit)
-        title_row.addWidget(close_btn)
-
-        main_layout.addLayout(title_row)
 
         # === Search row: search + pin-top + settings ===
         search_row = QHBoxLayout()
@@ -191,18 +148,15 @@ class MainPanel(QWidget):
         on = self.pin_top_btn.isChecked()
         self._update_pin_top_style()
         self.pin_top_btn.setToolTip('窗口置顶：开' if on else '窗口置顶：关')
-        # Use Windows API to avoid window flicker
         w = self.window()
         if w:
-            hwnd = int(w.winId())
+            w.hide()
+            flags = w.windowFlags()
             if on:
-                ctypes.windll.user32.SetWindowPos(
-                    hwnd, HWND_TOPMOST, 0, 0, 0, 0,
-                    SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
+                w.setWindowFlags(flags | Qt.WindowType.WindowStaysOnTopHint)
             else:
-                ctypes.windll.user32.SetWindowPos(
-                    hwnd, HWND_NOTOPMOST, 0, 0, 0, 0,
-                    SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
+                w.setWindowFlags(flags & ~Qt.WindowType.WindowStaysOnTopHint)
+            w.show()
 
     def _on_search(self, text: str):
         self.search_text = text

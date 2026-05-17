@@ -64,12 +64,8 @@ class MainWindow(QWidget):
         self.stack.setCurrentIndex(0)
 
     def closeEvent(self, event):
-        """System X hides to tray. When quitting, accept close."""
-        if getattr(self, '_quitting', False):
-            event.accept()
-        else:
-            event.ignore()
-            self.hide()
+        """System X quits the application completely."""
+        self._quit_app()
 
     def _show_history(self):
         self.history_window.current_page = 1
@@ -193,15 +189,15 @@ class ClipboardApp:
             save_config(config)
 
     def _quit(self):
-        """Fully quit the application."""
+        """Fully quit the application - stop all timers, clean up, force exit."""
         if hasattr(self.window.main_panel, '_refresh_timer'):
             self.window.main_panel._refresh_timer.stop()
         self.hotkey_filter.unregister()
         self.tray.hide()
-        self.window._quitting = True
         self.window.hide()
-        self.app.quit()
-        sys.exit(0)
+        self.app.closeAllWindows()
+        self.app.exit(0)
+        os._exit(0)
 
     def run(self):
         self.app.exec()
