@@ -1,5 +1,5 @@
 """Monitor Windows clipboard for text and image changes."""
-from PySide6.QtCore import QObject, QTimer
+from PySide6.QtCore import QObject, QTimer, Signal
 from PySide6.QtGui import QClipboard, QImage
 from PySide6.QtWidgets import QApplication
 
@@ -8,13 +8,14 @@ from clipboard_manager.config import load_config
 
 
 class ClipboardMonitor(QObject):
+    content_added = Signal()
+
     def __init__(self):
         super().__init__()
         self._clipboard = QApplication.instance().clipboard()
         self._last_text = ''
         self._last_image_hash = None
 
-        # Poll clipboard every 500ms
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._check_clipboard)
         self._timer.start(500)
@@ -37,6 +38,7 @@ class ClipboardMonitor(QObject):
                         img.save(buf, 'PNG')
                         add_record('image', image_data=buf.data().data())
                         self._cleanup()
+                        self.content_added.emit()
             return
 
         if mime.hasText():
@@ -45,6 +47,7 @@ class ClipboardMonitor(QObject):
                 self._last_text = text
                 add_record('text', content=text)
                 self._cleanup()
+                self.content_added.emit()
             return
 
     def _cleanup(self):

@@ -94,8 +94,11 @@ class ClipboardApp:
         config = load_config()
         cleanup(config.storage_days, config.max_items)
 
-        # Clipboard monitor
+        # Clipboard monitor - refresh panel on new content
         self.monitor = ClipboardMonitor()
+        self.monitor.content_added.connect(
+            lambda: self.window.main_panel.refresh() if self.window.isVisible() else None
+        )
 
         # Main window
         self.window = MainWindow(
@@ -189,9 +192,7 @@ class ClipboardApp:
             save_config(config)
 
     def _quit(self):
-        """Fully quit the application - stop all timers, clean up, force exit."""
-        if hasattr(self.window.main_panel, '_refresh_timer'):
-            self.window.main_panel._refresh_timer.stop()
+        """Fully quit the application."""
         self.hotkey_filter.unregister()
         self.tray.hide()
         self.window.hide()

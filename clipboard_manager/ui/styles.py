@@ -78,18 +78,34 @@ QPushButton#settingsBtn:hover {{
 }}
 
 /* Card */
-QFrame#card {{
+QPushButton#card {{
     background: white;
     border-radius: 12px;
     border: 1px solid {BORDER_LIGHT};
-    padding: 10px;
+    text-align: left;
 }}
 
-QFrame#cardPinned {{
+QPushButton#card:hover {{
+    background: #FAFBFC;
+}}
+
+QPushButton#card:pressed {{
+    background: #F0F4F8;
+}}
+
+QPushButton#cardPinned {{
     background: white;
     border-radius: 12px;
     border: 1.5px solid {PINNED_BORDER};
-    padding: 10px;
+    text-align: left;
+}}
+
+QPushButton#cardPinned:hover {{
+    background: #FAFBFC;
+}}
+
+QPushButton#cardPinned:pressed {{
+    background: #F0F4F8;
 }}
 
 /* Action buttons in cards */

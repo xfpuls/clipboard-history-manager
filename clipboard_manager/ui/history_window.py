@@ -126,10 +126,12 @@ class HistoryWindow(QWidget):
         self.count_lbl.setText(f'共 {total} 条')
 
         for rec in records:
-            card = CardWidget(rec)
-            card.clicked.connect(self._on_card_click)
-            card.pin_toggled.connect(lambda rid, val: self.refresh())
-            card.deleted.connect(lambda rid: self.refresh())
+            card = CardWidget(
+                rec,
+                on_click=self._on_card_click,
+                on_pin_toggled=lambda rid, val: self.refresh(),
+                on_deleted=lambda rid: self.refresh(),
+            )
             self.cards_layout.insertWidget(self.cards_layout.count() - 1, card)
 
         page_bar = PageBar(self.current_page, self.total_pages)
@@ -147,10 +149,15 @@ class HistoryWindow(QWidget):
         self.refresh()
 
     def _on_card_click(self, record: dict):
-        clipboard = QApplication.instance().clipboard()
         if record['type'] == 'text' and record.get('content'):
-            clipboard.setText(record['content'])
+            content = record['content']
+            try:
+                import pyperclip
+                pyperclip.copy(content)
+            except Exception:
+                pass
+            QApplication.instance().clipboard().setText(content)
         elif record['type'] == 'image' and record.get('image_data'):
             img = QImage()
             img.loadFromData(record['image_data'])
-            clipboard.setImage(img)
+            QApplication.instance().clipboard().setImage(img)

@@ -3,10 +3,10 @@ import os
 import sys
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton,
-    QScrollArea, QLabel, QButtonGroup
+    QScrollArea, QLabel, QButtonGroup, QApplication
 )
-from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtGui import QClipboard, QIcon
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QIcon
 
 from clipboard_manager.database import get_recent, get_records
 from clipboard_manager.ui.card_widget import CardWidget
@@ -65,10 +65,6 @@ class MainPanel(QWidget):
         self._always_on_top = False
         self._build_ui()
         self.refresh()
-
-        self._refresh_timer = QTimer(self)
-        self._refresh_timer.timeout.connect(self.refresh)
-        self._refresh_timer.start(2000)
 
     def _build_ui(self):
         main_layout = QVBoxLayout(self)
@@ -167,10 +163,13 @@ class MainPanel(QWidget):
         self.refresh()
 
     def refresh(self):
+        # Immediately clear all cards
         while self.cards_layout.count() > 1:
             item = self.cards_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+            w = item.widget()
+            if w:
+                w.setParent(None)
+                w.deleteLater()
 
         if self.search_text or self.current_filter != 'all':
             records, _, _ = get_records(
@@ -180,18 +179,26 @@ class MainPanel(QWidget):
             records = get_recent(20)
 
         for rec in records:
-            card = CardWidget(rec)
-            card.clicked.connect(self._on_card_click)
-            card.pin_toggled.connect(lambda rid, val: self.refresh())
-            card.deleted.connect(lambda rid: self.refresh())
+            card = CardWidget(
+                rec,
+                on_click=self._on_card_click,
+                on_pin_toggled=lambda rid, val: self.refresh(),
+                on_deleted=lambda rid: self.refresh(),
+            )
             self.cards_layout.insertWidget(self.cards_layout.count() - 1, card)
 
     def _on_card_click(self, record: dict):
-        clipboard = QApplication.instance().clipboard()
         if record['type'] == 'text' and record.get('content'):
-            clipboard.setText(record['content'])
+            content = record['content']
+            # Double-write: pyperclip first, then Qt as guarantee
+            try:
+                import pyperclip
+                pyperclip.copy(content)
+            except Exception:
+                pass
+            QApplication.instance().clipboard().setText(content)
         elif record['type'] == 'image' and record.get('image_data'):
             from PySide6.QtGui import QImage
             img = QImage()
             img.loadFromData(record['image_data'])
-            clipboard.setImage(img)
+            QApplication.instance().clipboard().setImage(img)
