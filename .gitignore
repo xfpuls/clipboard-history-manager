@@ -21,8 +21,13 @@ Desktop.ini
 venv/
 .venv/
 
-# Temp
+# Temp / Dev tools
 *.tmp
 *.log
 release/
-*.png
+debug_clipboard.py
+generate_daily_pdf.py
+generate_gear_icon.py
+generate_icon.py
+BUG_FIX_LOG.md
+每日总结.pdf
