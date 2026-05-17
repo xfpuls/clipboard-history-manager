@@ -14,7 +14,7 @@ class AppConfig:
     max_items: int = 500        # 200, 500, or 1000
     hotkey: str = 'Ctrl+Shift+V'
     auto_start: bool = True
-    last_version: str = '1.0.0'
+    last_version: str = '1.1.0'
     skip_version: Optional[str] = None  # version user chose "remind later"
 
 
