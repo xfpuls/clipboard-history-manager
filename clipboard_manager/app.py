@@ -173,10 +173,13 @@ class ClipboardApp:
         from PySide6.QtWidgets import QMessageBox
         msg = QMessageBox(self.window)
         msg.setWindowTitle('软件更新')
+        msg.setIcon(QMessageBox.Information)
         msg.setText(f'发现新版本 v{info["version"]}')
+        notes = info.get("notes", "") or "优化体验，修复问题"
         msg.setInformativeText(
             f'当前版本: v{load_config().last_version}\n\n'
-            f'更新内容:\n{info.get("notes", "优化体验，修复问题")}'
+            f'更新内容:\n{notes}\n\n'
+            f'点击"立即更新"将自动下载并安装。'
         )
         update_btn = msg.addButton('立即更新', QMessageBox.YesRole)
         later_btn = msg.addButton('稍后提醒', QMessageBox.NoRole)
