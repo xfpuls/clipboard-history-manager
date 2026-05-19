@@ -2,10 +2,10 @@
 import os
 import sys
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QStackedWidget
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QEvent
 from PySide6.QtGui import QIcon
 
-from clipboard_manager.config import load_config, save_config
+from clipboard_manager.config import load_config, save_config, APP_VERSION
 from clipboard_manager.database import init_db, cleanup
 from clipboard_manager.clipboard_monitor import ClipboardMonitor
 from clipboard_manager.hotkey import HotkeyFilter
@@ -23,13 +23,15 @@ class MainWindow(QWidget):
         self._hide_to_tray = hide_to_tray
         self._quit_app = quit_app
         self.setWindowTitle('剪贴板历史管理器')
-        self.setFixedSize(400, 560)
+        self.setMinimumSize(360, 400)
+        self.resize(400, 560)
         icon_path = _get_icon_path()
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
         self.setWindowFlags(
             Qt.WindowType.Window |
-            Qt.WindowType.WindowCloseButtonHint
+            Qt.WindowType.WindowCloseButtonHint |
+            Qt.WindowType.WindowMinimizeButtonHint
         )
         self.setAttribute(Qt.WA_ShowWithoutActivating, False)
 
@@ -62,6 +64,11 @@ class MainWindow(QWidget):
 
         # Start on main panel
         self.stack.setCurrentIndex(0)
+
+    def changeEvent(self, event):
+        if event.type() == QEvent.WindowStateChange and self.isMinimized():
+            event.ignore()
+            QTimer.singleShot(0, self.hide)
 
     def closeEvent(self, event):
         """System X quits the application completely."""
@@ -165,30 +172,30 @@ class ClipboardApp:
 
     def _check_updates(self):
         config = load_config()
-        info = check_update(config.last_version)
+        info = check_update(APP_VERSION)
         if info and info['version'] != config.skip_version:
             self._show_update_notification(info)
 
     def _show_update_notification(self, info: dict):
         from PySide6.QtWidgets import QMessageBox
+        from clipboard_manager.updater import open_releases_page
         msg = QMessageBox(self.window)
         msg.setWindowTitle('软件更新')
         msg.setIcon(QMessageBox.Information)
         msg.setText(f'发现新版本 v{info["version"]}')
         notes = info.get("notes", "") or "优化体验，修复问题"
         msg.setInformativeText(
-            f'当前版本: v{load_config().last_version}\n\n'
+            f'当前版本: v{APP_VERSION}\n\n'
             f'更新内容:\n{notes}\n\n'
-            f'点击"立即更新"将自动下载并安装。'
+            f'点击"前往下载"将在浏览器中打开 GitHub 下载页面。'
         )
-        update_btn = msg.addButton('立即更新', QMessageBox.YesRole)
+        download_btn = msg.addButton('前往下载', QMessageBox.YesRole)
         later_btn = msg.addButton('稍后提醒', QMessageBox.NoRole)
-        msg.setDefaultButton(update_btn)
+        msg.setDefaultButton(download_btn)
         msg.exec()
 
-        if msg.clickedButton() == update_btn:
-            from clipboard_manager.updater import download_and_install
-            download_and_install(info)
+        if msg.clickedButton() == download_btn:
+            open_releases_page()
         else:
             config = load_config()
             config.skip_version = info['version']

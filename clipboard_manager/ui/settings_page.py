@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal
 
-from clipboard_manager.config import AppConfig, load_config, save_config
+from clipboard_manager.config import AppConfig, load_config, save_config, APP_VERSION
 from clipboard_manager.updater import check_update
 
 
@@ -195,7 +195,7 @@ class SettingsPage(QWidget):
         update_row = QHBoxLayout()
         update_text = QVBoxLayout()
         update_text.addWidget(WrapLabel('软件更新', 'sectionTitle'))
-        self.update_hint = WrapLabel(f'当前版本 v{self.config.last_version}', 'hintLabel')
+        self.update_hint = WrapLabel(f'当前版本 v{APP_VERSION}', 'hintLabel')
         update_text.addWidget(self.update_hint)
         update_row.addLayout(update_text)
         update_row.addStretch()
@@ -217,7 +217,7 @@ class SettingsPage(QWidget):
         c6_layout.setContentsMargins(14, 12, 14, 12)
         about_text = QVBoxLayout()
         about_text.addWidget(WrapLabel('关于', 'sectionTitle'))
-        about_text.addWidget(WrapLabel('剪贴板历史管理器 v' + self.config.last_version, 'hintLabel'))
+        about_text.addWidget(WrapLabel('剪贴板历史管理器 v' + APP_VERSION, 'hintLabel'))
         c6_layout.addLayout(about_text)
         c6_layout.addStretch()
         layout.addWidget(card6)
@@ -248,7 +248,7 @@ class SettingsPage(QWidget):
         QTimer.singleShot(1000, self._do_update_check)
 
     def _do_update_check(self):
-        info = check_update(self.config.last_version)
+        info = check_update(APP_VERSION)
         self.check_update_btn.setText('检查更新')
         self.check_update_btn.setEnabled(True)
 
@@ -259,7 +259,7 @@ class SettingsPage(QWidget):
             msg.setWindowTitle('软件更新')
             msg.setText(f'发现新版本 v{info["version"]}')
             msg.setInformativeText(
-                f'当前版本: v{self.config.last_version}\n\n'
+                f'当前版本: v{APP_VERSION}\n\n'
                 f'更新内容:\n{info.get("notes", "优化体验，修复问题")}\n\n'
                 f'是否立即更新？'
             )
@@ -270,4 +270,4 @@ class SettingsPage(QWidget):
                 from clipboard_manager.updater import download_and_install
                 download_and_install(info)
         else:
-            self.update_hint.setText(f'已是最新版本 v{self.config.last_version} ✓')
+            self.update_hint.setText(f'已是最新版本 v{APP_VERSION} ✓')

@@ -7,15 +7,18 @@ from typing import Optional
 CONFIG_DIR = os.path.join(os.path.expanduser('~'), '.clipboard_manager')
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'settings.json')
 
+# Hard version — not affected by user config
+APP_VERSION = '1.1.0'
+
 
 @dataclass
 class AppConfig:
-    storage_days: int = 3       # 1, 3, or 5
-    max_items: int = 500        # 200, 500, or 1000
+    storage_days: int = 3
+    max_items: int = 500
     hotkey: str = 'Ctrl+Shift+V'
     auto_start: bool = True
-    last_version: str = '1.2.0'
-    skip_version: Optional[str] = None  # version user chose "remind later"
+    last_version: str = APP_VERSION
+    skip_version: Optional[str] = None
 
 
 def load_config() -> AppConfig:
