@@ -5,7 +5,7 @@
 
 一个运行在 Windows 上的轻量级剪贴板历史管理工具，常驻系统托盘，自动记录文字和图片复制内容。
 
-![版本](https://img.shields.io/badge/版本-v1.0-5B9BD5)
+![版本](https://img.shields.io/github/v/release/xfpuls/clipboard-history-manager?label=版本&color=5B9BD5)
 
 ## 功能
 
